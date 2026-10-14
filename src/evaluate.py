@@ -57,7 +57,7 @@ def run(data_path, output_dir):
             [("scale", StandardScaler(), ["Time", "Amount"])],
             remainder="passthrough")),
         ("model", LogisticRegression(
-            class_weight="balanced", solver="liblinear", max_iter=2000,
+            class_weight="balanced", solver="lbfgs", max_iter=250, tol=1e-3,
             random_state=RANDOM_STATE)),
     ])
     pipeline.fit(X_train, y_train)
