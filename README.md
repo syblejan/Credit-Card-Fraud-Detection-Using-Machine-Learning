@@ -65,10 +65,39 @@ python src/evaluate.py --data /path/to/creditcard.csv
 
 Outputs (after a successful run): `results/evaluation.json`, `results/holdout_predictions.csv`.
 
-## Evaluation Status and Limitations
-**Code was audited and reorganized. The corrected pipeline has not yet been run against the original 284,807-row dataset in this environment because its CSV is not present in the repository.** No corrected test score is claimed here. The historical 93.91% figure applies only to the original artificially balanced dataset.
+## Verified Full-Dataset Execution
 
-The stratified random holdout is educational; it does not simulate a temporal production deployment. For a more realistic study, evaluate chronological out-of-time splits, transaction-level grouping when appropriate, calibration, cost-sensitive thresholds and data drift. Even a high PR-AUC on this educational dataset does not establish production readiness.
+The corrected pipeline was **executed on the original uploaded 284,807-row CSV** using Python and scikit-learn, with the scalable `lbfgs` Logistic Regression solver (`max_iter=250`, `tol=1e-3`). Stratified train/validation/test split: **170,883 / 56,962 / 56,962**. The classification threshold **0.95** was selected using validation F1 only, without test-label selection.
+
+| Test metric | Verified result |
+|---|---:|
+| Precision (fraud) | **29.79%** |
+| Recall (fraud) | **88.78%** |
+| F1 (fraud) | **44.62%** |
+| PR-AUC / Average Precision | **0.7177** |
+| ROC-AUC | **0.9728** |
+
+### Confusion Matrix — Untouched Holdout
+
+| | Predicted Legitimate | Predicted Fraud |
+|---|---:|---:|
+| Actual legitimate | 56,659 | 205 |
+| Actual fraud | 11 | 87 |
+
+Among the 98 actual fraudulent test cases, the model identified 87 and missed 11. However, it also flagged 205 legitimate transactions as fraud, so the **positive prediction precision is only 29.79%**. The ROC-AUC alone should not be interpreted as proof of a good deployed fraud system.
+
+At the default threshold 0.50, fraud recall was higher (**91.84%**) but precision much lower (**6.06%**) with 1,395 false positives. This illustrates the precision–recall trade-off.
+
+**Execution scope:** Successfully ran the corrected `src/evaluate.py` workflow with the original ZIP's `creditcard.csv`. It generated `results/evaluation.json` and `results/holdout_predictions.csv`. These output files are generated locally, not committed to the public GitHub repository.
+
+## Limitations
+
+- The original 93.91% accuracy was on a balanced subset and is not comparable to the new full-distribution scores.
+- Stratified random holdout does not simulate live chronological fraud detection.
+- No cost-sensitive business threshold, production monitoring, calibration review, model drift validation, or privacy/compliance assessment.
+- The source CSV contains anonymized features; public provenance and usage terms should be independently checked.
+
+**These results are educational and are not validated for real payment decisions.**
 
 ## Author
 **Syble Jan** · BS Computer Science · AI/ML projects
